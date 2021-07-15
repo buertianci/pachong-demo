@@ -26,11 +26,14 @@ class MysqlHelper:
             self.open_connect()
 
             self.cursor.execute(sql, params)
+            insert_id = self.conn.insert_id()
             self.conn.commit()
             print("操作影响行数：" + str(self.cursor.rowcount))
+            return insert_id
         except Exception as e:
             print(e)
             self.conn.rollback()
+            return 0
         finally:
             self.close_connect()
 
@@ -75,6 +78,19 @@ class MysqlHelper:
             return None
         finally:
             self.close_connect()
+
+    # 标识类方法，可以直接被类调用 cls class的简写
+    @classmethod
+    def insert_one(cls, insert_sql, insert_params):
+        # 链接mysql库
+        sql_helper = MysqlHelper(config.MYSQL_CONFIG.get('host'), config.MYSQL_CONFIG.get('port'),
+                                 config.MYSQL_CONFIG.get('db_name'), config.MYSQL_CONFIG.get('user'),
+                                 config.MYSQL_CONFIG.get('pwd'))
+        try:
+            return sql_helper.insert_update_delete(insert_sql, insert_params)
+        except IndexError:
+            print("单条插入发生异常。。。")
+            exit(1)
 
     # 标识类方法，可以直接被类调用 cls class的简写
     @classmethod
@@ -152,14 +168,15 @@ if __name__ == '__main__':
     #
     # # 删除 - 单条
     # deleteSql = "delete from user where id = %s"
-    # deleteParams = [14]
+    # deleteParams = [4]
     # sqlHelper.insert_update_delete(deleteSql, deleteParams)
     #
     # # 删除 - 批量
     # deleteSql = "delete from user where id = %s"
     # deleteParams = [
-    #     [15],
-    #     [16],
+    #     [2],
+    #     [3],
     #     [17]
     #     ]
     # sqlHelper.insert_update_delete_batch(deleteSql, deleteParams)
+
